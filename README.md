@@ -1,7 +1,7 @@
 # Projeto Sentinela
 
 Firewall e sistema de monitoramento de rede em C++20 para a disciplina de
-Programação Orientada a Objetos. O projeto recebe pacotes por `libpcap`,
+Desenvolvimento de Sistemas. O projeto recebe pacotes por `libpcap`,
 interpreta os protocolos suportados e aplica regras de detecção configuráveis.
 
 Esta primeira entrega é **passiva**: o programa detecta e registra eventos, mas
