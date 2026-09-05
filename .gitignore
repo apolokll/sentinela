@@ -1,0 +1,8 @@
+/build/
+/out/
+*.pcap
+*.pcapng
+*.jsonl
+*.log
+*.env
+.vscode/

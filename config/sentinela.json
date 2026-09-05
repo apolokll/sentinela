@@ -1,0 +1,34 @@
+{
+  "captura": {
+    "interface": "eth0",
+    "promiscuo": true,
+    "snaplen": 65535,
+    "timeout_ms": 500
+  },
+  "log_jsonl": "eventos.jsonl",
+  "regras": [
+    {
+      "tipo": "port_scan",
+      "id": "port-scan",
+      "habilitada": true,
+      "janela_segundos": 10,
+      "minimo_portas_distintas": 8,
+      "cooldown_segundos": 30
+    },
+    {
+      "tipo": "ping_sweep",
+      "id": "ping-sweep",
+      "habilitada": true,
+      "janela_segundos": 10,
+      "minimo_destinos_distintos": 5,
+      "cooldown_segundos": 30
+    },
+    {
+      "tipo": "ssh-protegido",
+      "habilitada": true,
+      "ip_destino": "172.20.0.10",
+      "portas": [22],
+      "severidade": "media"
+    }
+  ]
+}
