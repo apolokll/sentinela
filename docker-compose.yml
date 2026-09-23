@@ -15,44 +15,50 @@ services:
     networks:
       sentinela-net:
         ipv4_address: 172.20.0.20
-    depends_on: [alvo-web]
+    depends_on:
+      - alvo-web
+      - zabbix-server
 
-  graylog-mongo:
-    image: mongo:6
-    container_name: graylog-mongo
-    networks: [sentinela-net]
-
-  graylog-opensearch:
-    image: opensearchproject/opensearch:2
-    container_name: graylog-opensearch
+  zabbix-db:
+    image: postgres:15-alpine
+    container_name: zabbix-db
     environment:
-      discovery.type: single-node
-      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
-      DISABLE_SECURITY_PLUGIN: "true"
-      ES_NODE_DISK_WATERMARK_LOW: "95%"
-      ES_NODE_DISK_WATERMARK_HIGH: "97%"
-      ES_NODE_DISK_WATERMARK_FLOOD_STAGE: "98%"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    networks: [sentinela-net]
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_password
+      POSTGRES_DB: zabbix
+    networks:
+      - sentinela-net
 
-  graylog:
-    image: graylog/graylog:6.0
-    container_name: graylog
-    depends_on: [graylog-mongo, graylog-opensearch]
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-6.4-latest
+    container_name: zabbix-server
     environment:
-      GRAYLOG_PASSWORD_SECRET: "troque-esta-senha-secreta-com-16-chars"
-      GRAYLOG_ROOT_PASSWORD_SHA2: "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"
-      GRAYLOG_HTTP_EXTERNAL_URI: "http://127.0.0.1:9000/"
-      GRAYLOG_ELASTICSEARCH_HOSTS: "http://graylog-opensearch:9200"
-      GRAYLOG_MONGODB_URI: "mongodb://graylog-mongo:27017/graylog"
-      GRAYLOG_MESSAGE_JOURNAL_MAX_SIZE: "1gb"
+      DB_SERVER_HOST: zabbix-db
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_password
+      POSTGRES_DB: zabbix
     ports:
-      - "9000:9000"
-      - "12201:12201/udp"
-    networks: [sentinela-net]
+      - "10051:10051"
+    networks:
+      - sentinela-net
+    depends_on:
+      - zabbix-db
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-6.4-latest
+    container_name: zabbix-web
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      DB_SERVER_HOST: zabbix-db
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_password
+      POSTGRES_DB: zabbix
+    ports:
+      - "8080:8080"
+    networks:
+      - sentinela-net
+    depends_on:
+      - zabbix-server
 
 networks:
   sentinela-net:
