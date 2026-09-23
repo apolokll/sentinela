@@ -5,25 +5,19 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
-    git \
     libpcap-dev \
-    nlohmann-json3-dev \
-    libspdlog-dev \
-    libcurl4-openssl-dev \
-    libnetfilter-queue-dev \
-    iptables \
-    iputils-ping \
-    tcpdump \
-    && rm -rf /var/lib/apt/lists/*[cite: 2]
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY src/ ./src/
+COPY . /app
 
-CMD ["sleep", "infinity"]
+RUN g++ -Iinclude -o sentinela \
+    src/main.cpp \
+    src/captura/Parser.cpp \
+    src/regras/EngineRegras.cpp \
+    -lpcap
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    python3 \
-    && rm -rf /var/lib/apt/lists/*
+CMD ["./sentinela"]

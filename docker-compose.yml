@@ -1,9 +1,4 @@
-networks:
-  sentinela-net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/24
+version: '3.8'
 
 services:
   alvo-web:
@@ -58,3 +53,10 @@ services:
       - "9000:9000"
       - "12201:12201/udp"
     networks: [sentinela-net]
+
+networks:
+  sentinela-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
