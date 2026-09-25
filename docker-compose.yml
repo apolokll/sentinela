@@ -40,7 +40,8 @@
       ports:
         - "10051:10051"
       networks:
-        - sentinela-net
+        sentinela-net:
+          ipv4_address: 172.20.0.30
       depends_on:
         - zabbix-db
 
