@@ -7,7 +7,7 @@
 
 int main() {
     char errbuf[PCAP_ERRBUF_SIZE];
-    const char* dev = "eth0"; 
+    const char* dev = "any"; // Captura de todas as interfaces ativas (eth0, wlan0, etc.)
 
     pcap_t* handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
     if (handle == nullptr) {
