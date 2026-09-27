@@ -1,114 +1,82 @@
-# Projeto Sentinela
+# Sentinela 🛡️
 
-Firewall e sistema de monitoramento de rede em C++20 para a disciplina de
-Desenvolvimento de Sistemas. O projeto recebe pacotes por `libpcap`,
-interpreta os protocolos suportados e aplica regras de detecção configuráveis.
+**Sentinela** é uma aplicação de Segurança da Informação desenvolvida em **C++17** voltada para o monitoramento de tráfego de rede em tempo real, detecção de anomalias/ataques e exportação de métricas de saúde operacional e tráfego para o **Zabbix**.
 
-Esta primeira entrega é **passiva**: o programa detecta e registra eventos, mas
-não altera o tráfego nem regras do firewall do sistema operacional.
+Este projeto faz parte do módulo de desenvolvimento de sistemas e monitoramento de segurança de rede.
 
-## Escopo da Entrega 1
+---
 
-- Captura de pacotes Ethernet/IP/TCP/UDP/ICMP com `libpcap`.
-- Modelagem polimórfica de pacotes e regras.
-- Detecção de varredura de portas, ping sweep e acesso a IP/porta bloqueado em
-  modo alerta.
-- Regras e limiares carregados de JSON.
-- Eventos estruturados em log local e estatísticas periódicas no terminal.
-- Testes unitários para parser, regras e componentes de estado, sem exigir uma
-  interface de rede real.
+## 🏗️ Arquitetura e Estrutura do Projeto
 
-O diagrama de responsabilidades, as fronteiras entre módulos e as decisões de
-extensibilidade estão em [docs/architecture.md](docs/architecture.md).
+O projeto adota uma arquitetura orientada a objetos modular, utilizando *smart pointers* (`std::shared_ptr`), tratamento de exceções e padrões de projeto (*Strategy* e *Observer*).
 
-## Dependências
-
-| Item | Uso |
-| --- | --- |
-| Compilador com C++20 | Compilação do projeto |
-| CMake 3.25 ou superior | Configuração do build |
-| `libpcap` (headers de desenvolvimento) | Captura de pacotes |
-| nlohmann/json | Leitura da configuração e eventos JSON |
-| spdlog | Logging local |
-| GoogleTest | Testes unitários |
-| Ninja (opcional) | Build rápido |
-
-Em Debian/Ubuntu, uma instalação típica é:
-
-```bash
-sudo apt update
-sudo apt install build-essential cmake ninja-build libpcap-dev \
-  nlohmann-json3-dev libspdlog-dev libgtest-dev
+```text
+sentinela/
+├── config/              # Arquivos de configuração dinâmica (JSON)
+├── docs/                # Diagramas UML e documentação técnica
+├── include/             # Arquivos de cabeçalho (.hpp)
+│   ├── captura/         # Leitura de pacotes e parsing via libpcap
+│   ├── core/            # Gestão de métricas, eventos e exceções
+│   ├── exportadores/    # Integração com Zabbix (Trapper) e Graylog (GELF)
+│   ├── modelos/         # Abstrações de Pacote (Ethernet, IP, TCP, UDP, ICMP)
+│   └── regras/          # Engine de detecção de ataques e assinaturas
+├── src/                 # Implementação dos módulos (.cpp)
+├── tests/               # Testes unitários (Catch2 / Google Test)
+├── CMakeLists.txt       # Configuração de build automatizado
+├── Dockerfile           # Imagem da aplicação Sentinela
+└── docker-compose.yml   # Orquestração do Sentinela, Alvo Web e Zabbix Stack
 ```
 
-As dependências de produção devem ser resolvidas pelo CMake. GoogleTest pode ser
-obtido pelo gerenciador de pacotes ou pelo mecanismo configurado no projeto; não
-é necessário incluí-lo no código-fonte da aplicação.
+## ⚡ Funcionalidades
 
-## Compilar
+- **Captura em Tempo Real:** Captura de pacotes de rede utilizando `libpcap` na interface `any` (Ethernet, Wi-Fi e pontes virtuais do Docker).
 
-```bash
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DSENTINELA_BUILD_TESTS=ON
-cmake --build build
-```
+- **Parsing de Protocolos:** Decodificação e inspeção de cabeçalhos Ethernet, IP, TCP, UDP e ICMP.
 
-Sem Ninja, remova `-G Ninja`:
+- **Engine de Regras:** Análise contínua de pacotes para identificação de varreduras de porta (Port Scan) e acessos a serviços sensíveis.
 
-```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DSENTINELA_BUILD_TESTS=ON
-cmake --build build
-```
+- **Métricas Operacionais:** Cálculo de vazão de tráfego (`pacotes_por_segundo`) e contagem acumulada de `alertas_disparados` de forma thread-safe.
 
-## Executar testes
+- **Exportação Trapper:** Envio periódico de métricas para o **Zabbix Server** na porta `TCP 10051`.
 
-```bash
-ctest --test-dir build --output-on-failure
-```
+## 🚀 Como Executar
 
-Para desenvolver uma regra, execute primeiro seus testes unitários e só então
-faça uma demonstração com captura real. Os testes usam bytes de pacotes e
-relógio/contexto controlados; portanto, não dependem de privilégios nem de uma
-rede externa.
+### Pré-requisitos
 
-## Configurar e executar
+- Docker e Docker Compose instalados.
+- Compilador C++17 e CMake 3.14+ (para execução/compilação local sem container).
+- Biblioteca `libpcap-dev` instalada no sistema.
 
-Comece pela configuração de exemplo e mantenha valores locais fora do Git:
+### Executando via Docker Compose (Recomendado)
+
+1. Suba todo o ambiente containerizado (Sentinela + Zabbix Server/Web/PostgreSQL + Alvo Web):
 
 ```bash
-cp config/sentinela.example.json config/sentinela.local.json
-./build/sentinela --config config/sentinela.local.json --interface <interface>
+docker compose up --build -d
 ```
 
-Use `./build/sentinela --help` para conferir as opções implementadas. A
-configuração deve definir, no mínimo, os limiares das regras, os destinos em
-modo alerta e o caminho do log estruturado.
+2. Acesse a interface web do Zabbix no seu navegador:
 
-Captura em modo promíscuo normalmente exige `CAP_NET_RAW` e, em alguns sistemas,
-`CAP_NET_ADMIN`. Em um ambiente de laboratório isolado, use `sudo` apenas para
-o processo de demonstração ou conceda capacidades de forma consciente à cópia
-local do binário. Não execute o capturador em redes de terceiros sem autorização.
+```text
+http://localhost:8080
+```
 
-## Demonstração segura
+*(Credenciais padrão: `Admin` / `zabbix`)*
 
-- Restrinja a demonstração à rede Docker da disciplina ou a uma máquina virtual
-  própria; confirme a interface antes de iniciar a captura.
-- Use somente o alvo e o atacante previstos no laboratório. Para a Entrega 1,
-  `nmap` e ferramentas de geração de tráfego devem apontar exclusivamente para
-  esse alvo autorizado.
-- Não execute varreduras, flood ou captura promíscua em redes de colegas,
-  institucionais ou públicas.
-- Salve logs de demonstração em um diretório local ignorado pelo Git e remova
-  endereços ou dados sensíveis antes de incluí-los no relatório.
+### Compilando e Executando Localmente
 
-## Limite entre as entregas
+```bash
+mkdir build && cd build
+cmake ..
+make
+sudo ./sentinela
+```
 
-| Entrega 1 | Futuras extensões da Entrega 2 |
-| --- | --- |
-| Detectar, registrar e apresentar estatísticas | Aceitar/descartar com NFQUEUE e banimento temporário |
-| Log local estruturado | GELF/Graylog, métricas Zabbix e evidências `.pcap` |
-| Port scan, ping sweep e destino bloqueado em alerta | SYN flood e força bruta SSH |
-| Interfaces de ação/exportação apenas passivas | Adaptadores ativos e integrações externas |
+## 🧪 Testes de Ataque e Validação
 
-Manter essa separação evita que privilégios de firewall, dependências de
-monitoramento e infraestrutura Docker escondam a qualidade do núcleo OO que é
-avaliado na primeira entrega.
+Para testar o disparo de regras e a atualização das métricas no Zabbix, utilize ferramentas como `nmap` ou `hping3` contra o container alvo (`alvo-web` - `172.20.0.10`):
+
+```bash
+# Simulação de Port Scan contra o container alvo
+nmap -sS -p 1-1024 172.20.0.10
+```
