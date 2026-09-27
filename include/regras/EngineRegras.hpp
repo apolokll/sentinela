@@ -2,14 +2,18 @@
 #define ENGINE_REGRAS_HPP
 
 #include "regras/Regra.hpp"
+#include "core/ContadorMetricas.hpp"
 #include <vector>
 #include <memory>
 
 class EngineRegras {
 private:
     std::vector<std::shared_ptr<Regra>> regras;
+    std::shared_ptr<ContadorMetricas> metricas;
 
 public:
+    explicit EngineRegras(std::shared_ptr<ContadorMetricas> m) : metricas(std::move(m)) {}
+
     void adicionarRegra(std::shared_ptr<Regra> regra);
     void processarPacote(const std::shared_ptr<Pacote>& pacote);
 };
