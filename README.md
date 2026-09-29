@@ -78,5 +78,5 @@ Para testar o disparo de regras e a atualização das métricas no Zabbix, utili
 
 ```bash
 # Simulação de Port Scan contra o container alvo
-nmap -sS -p 1-1024 172.20.0.10
+nmap -sS -p 1-1024 172.50.0.10
 ```
