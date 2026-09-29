@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstdint>
+#include <memory>
 #include <iostream>
 
 enum class Protocolo {
@@ -21,19 +22,22 @@ protected:
     uint32_t timestamp;
 
 public:
-    Pacote(std::string orig, std::string dest, Protocolo prot, uint32_t ts)
-        : ipOrigem(std::move(orig)), ipDestino(std::move(dest)), protocolo(prot), timestamp(ts) {}
-
+    Pacote(std::string orig, std::string dest, Protocolo prot, uint32_t ts);
     virtual ~Pacote() = default; // Destruidor virtual obrigatório
 
     // Métodos Getters (Encapsulamento rigoroso)
-    std::string getIpOrigem() const { return ipOrigem; }
-    std::string getIpDestino() const { return ipDestino; }
-    Protocolo getProtocolo() const { return protocolo; }
-    uint32_t getTimestamp() const { return timestamp; }
+    std::string getIpOrigem() const;
+    std::string getIpDestino() const;
+    Protocolo getProtocolo() const;
+    uint32_t getTimestamp() const;
+
+    virtual std::string toString() const;
 
     // Método virtual puro
     virtual void exibirDetalhes() const = 0;
+
+    // Factory Method para criar instâncias concretas a partir do buffer bruto do libpcap
+    static std::unique_ptr<Pacote> criarDoBuffer(const unsigned char* bytes, uint32_t tamanhocap);
 };
 
 // Classe Derivada: PacoteTCP
@@ -43,22 +47,23 @@ private:
     uint16_t portaDestino;
     bool flagSYN;
     bool flagACK;
+    bool flagFIN;
+    bool flagRST;
 
 public:
-    PacoteTCP(std::string orig, std::string dest, uint32_t ts, uint16_t pOrig, uint16_t pDest, bool syn, bool ack)
-        : Pacote(std::move(orig), std::move(dest), Protocolo::TCP, ts),
-          portaOrigem(pOrig), portaDestino(pDest), flagSYN(syn), flagACK(ack) {}
+    PacoteTCP(std::string orig, std::string dest, uint32_t ts, 
+              uint16_t pOrig, uint16_t pDest, 
+              bool syn, bool ack, bool fin = false, bool rst = false);
 
-    uint16_t getPortaOrigem() const { return portaOrigem; }
-    uint16_t getPortaDestino() const { return portaDestino; }
-    bool isSYN() const { return flagSYN; }
-    bool isACK() const { return flagACK; }
+    uint16_t getPortaOrigem() const;
+    uint16_t getPortaDestino() const;
+    bool isSYN() const;
+    bool isACK() const;
+    bool isFIN() const;
+    bool isRST() const;
 
-    void exibirDetalhes() const override {
-        std::cout << "[TCP] " << ipOrigem << ":" << portaOrigem 
-                  << " -> " << ipDestino << ":" << portaDestino 
-                  << " (SYN: " << flagSYN << ", ACK: " << flagACK << ")\n";
-    }
+    void exibirDetalhes() const override;
+    std::string toString() const override;
 };
 
 // Classe Derivada: PacoteUDP
@@ -68,17 +73,13 @@ private:
     uint16_t portaDestino;
 
 public:
-    PacoteUDP(std::string orig, std::string dest, uint32_t ts, uint16_t pOrig, uint16_t pDest)
-        : Pacote(std::move(orig), std::move(dest), Protocolo::UDP, ts),
-          portaOrigem(pOrig), portaDestino(pDest) {}
+    PacoteUDP(std::string orig, std::string dest, uint32_t ts, uint16_t pOrig, uint16_t pDest);
 
-    uint16_t getPortaOrigem() const { return portaOrigem; }
-    uint16_t getPortaDestino() const { return portaDestino; }
+    uint16_t getPortaOrigem() const;
+    uint16_t getPortaDestino() const;
 
-    void exibirDetalhes() const override {
-        std::cout << "[UDP] " << ipOrigem << ":" << portaOrigem 
-                  << " -> " << ipDestino << ":" << portaDestino << "\n";
-    }
+    void exibirDetalhes() const override;
+    std::string toString() const override;
 };
 
 // Classe Derivada: PacoteICMP
@@ -88,17 +89,13 @@ private:
     uint8_t codigo;
 
 public:
-    PacoteICMP(std::string orig, std::string dest, uint32_t ts, uint8_t t, uint8_t c)
-        : Pacote(std::move(orig), std::move(dest), Protocolo::ICMP, ts),
-          tipo(t), codigo(c) {}
+    PacoteICMP(std::string orig, std::string dest, uint32_t ts, uint8_t t, uint8_t c);
 
-    uint8_t getTipo() const { return tipo; }
-    uint8_t getCodigo() const { return codigo; }
+    uint8_t getTipo() const;
+    uint8_t getCodigo() const;
 
-    void exibirDetalhes() const override {
-        std::cout << "[ICMP] " << ipOrigem << " -> " << ipDestino 
-                  << " (Tipo: " << (int)tipo << ", Codigo: " << (int)codigo << ")\n";
-    }
+    void exibirDetalhes() const override;
+    std::string toString() const override;
 };
 
-#endif
+#endif // PACOTE_HPP
