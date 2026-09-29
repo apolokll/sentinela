@@ -1,7 +1,7 @@
 #ifndef REGRA_HPP
 #define REGRA_HPP
 
-#include "modelos/Pacote.hpp" // Ajuste o caminho se necessário (ex: "modelos/Pacote.hpp")
+#include "modelos/Pacote.hpp" 
 #include <memory>
 #include <string>
 #include <vector>
