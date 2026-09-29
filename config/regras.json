@@ -1,0 +1,37 @@
+{
+  "regras": [
+    {
+      "tipo": "porta_sensivel",
+      "nome": "Acesso a Porta Sensivel (SSH)",
+      "descricao": "Detecta tentativa de conexao na porta 22 (SSH)",
+      "porta": 22
+    },
+    {
+      "tipo": "port_scan",
+      "nome": "Detecção de Port Scan",
+      "descricao": "Detecta varredura de portas a partir de um mesmo IP de origem",
+      "janela_segundos": 10,
+      "limiar_portas": 15
+    },
+    {
+      "tipo": "syn_flood",
+      "nome": "Detecção de SYN Flood",
+      "descricao": "Detecta alta taxa de pacotes SYN enviados por um IP",
+      "taxa_maxima": 50,
+      "janela_segundos": 5
+    },
+    {
+      "tipo": "bloqueio",
+      "nome": "Lista Negra de IPs e Portas",
+      "descricao": "Bloqueia ou alerta sobre pacotes vindo de origens proibidas",
+      "ips_bloqueados": [
+        "192.168.1.100",
+        "10.0.0.50"
+      ],
+      "portas_bloqueadas": [
+        23,
+        445
+      ]
+    }
+  ]
+}
