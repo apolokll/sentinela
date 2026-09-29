@@ -15,6 +15,8 @@ COPY . /app
 # Compilação limpa do C++
 RUN g++ -Iinclude -o sentinela \
     src/main.cpp \
+    src/modelos/Pacote.cpp \
+    src/regras/Regra.cpp \
     src/captura/Parser.cpp \
     src/regras/EngineRegras.cpp \
     -lpcap
